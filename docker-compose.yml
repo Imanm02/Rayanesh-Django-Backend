@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  rayanesh_postgres:
+    container_name: rayanesh_postgres
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./volumes/postgres_volume/:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=db_name
+      - POSTGRES_USER=db_user
+      - POSTGRES_PASSWORD=db_password
+
+  rayanesh_redis:
+    container_name: rayanesh_redis
+    image: redis
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - ./volumes/redis_volume/:/data/
+
+  rayanesh:
+    container_name: rayanesh
+    build: .
+    restart: always
+    command: >
+      bash -c "python manage.py makemigrations &&
+               python manage.py migrate &&
+               python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/rayanesh
+    ports:
+      - 8000:8000
+    environment:
+      - POSTGRES_DB=db_name
+      - POSTGRES_USER=db_user
+      - POSTGRES_PASSWORD=db_password
+    depends_on:
+      - rayanesh_redis
+      - rayanesh_postgres
+
+  rayanesh_worker:
+    container_name: rayanesh_worker
+    build: .
+    restart: always
+    depends_on:
+      - rayanesh_redis
+      - rayanesh
+    command: bash -c  "python manage.py makemigrations &&
+                       python manage.py migrate &&
+                       celery -A RayaneshBackend worker -l INFO"
+    volumes:
+      - ./volumes/cxc_worker/:/home/hossein/
+    environment:
+      - CELERY_BROKER=redis://rayanesh_redis:6379/0
