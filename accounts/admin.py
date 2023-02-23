@@ -5,17 +5,16 @@ from django.utils.translation import gettext, gettext_lazy as _
 from import_export.admin import ImportExportModelAdmin
 
 from .resources import ProfileResource
-from .models import User, Profile, Skill, JobExperience, GoogleLogin
+from .models import User, Profile, GoogleLogin
 
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
     fieldsets = (
-        (None, {'fields': ('username', 'password', 'team')}),
+        (None, {'fields': ('username', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
         (_('Permissions'), {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups',
-                       'user_permissions'),
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
@@ -23,26 +22,12 @@ class UserAdmin(DjangoUserAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(ImportExportModelAdmin):
-    inlines = (SkillInline, JobExperienceInline)
-    list_display = ('id', 'firstname_fa', 'lastname_fa', 'birth_date',
-                    'phone_number', 'university', 'major', 'university_degree')
-    list_filter = ('university', 'major', 'university_degree')
+    list_display = ('username', 'name')
+    list_filter = ('username', 'name', 'university_degree')
 
-    search_fields = ('firstname_fa', 'lastname_fa', 'major',
-                     'phone_number', 'university')
+    search_fields = ('username', 'name', 'email',)
 
     resource_class = ProfileResource
-
-
-@admin.register(Skill)
-class SkillAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(JobExperience)
-class JobExperienceAdmin(admin.ModelAdmin):
-    pass
-
 
 @admin.register(GoogleLogin)
 class GoogleLoginAdmin(admin.ModelAdmin):
