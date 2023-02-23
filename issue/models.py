@@ -1,6 +1,7 @@
 from django.db import models
 from model_utils.models import TimeStampedModel
 
+# شماره
 
 class Issue(TimeStampedModel):
     raw_file = models.FileField(upload_to='files/issues/')

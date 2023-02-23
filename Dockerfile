@@ -9,5 +9,5 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-RUN useradd -u 1000 hossein
-USER hossein
+RUN useradd -u 1000 web
+USER web

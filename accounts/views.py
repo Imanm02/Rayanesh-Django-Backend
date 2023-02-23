@@ -1,5 +1,3 @@
-from django.db.models import F, Value
-from django.db.models.functions import Concat
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.utils.http import urlsafe_base64_decode
@@ -15,24 +13,20 @@ from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.accounts.models import MajorAPIConfig, Major
-from apps.accounts.paginations import UsersPagination
+from .paginations import UsersPagination
 from .permissions import ProfileComplete
-from .models import Profile, User, ResetPasswordToken, \
-    University
+from .models import Profile, User, ResetPasswordToken
 from .serializer import (
     UserSerializer, ProfileSerializer, EmailSerializer,
     UserViewSerializer, ChangePasswordSerializer,
-    ResetPasswordConfirmSerializer, GoogleLoginSerializer,
-    UniversitySerializer, MajorSerializer)
+    ResetPasswordConfirmSerializer, GoogleLoginSerializer)
 
 __all__ = (
     'LoginAPIView', 'SignUpAPIView', 'ActivateAPIView', 'LogoutAPIView',
     'ResendActivationEmailAPIView', 'ProfileAPIView',
     'ChangePasswordAPIView', 'ResetPasswordAPIView',
-    'ResetPasswordConfirmAPIView', 'HideProfileInfoAPIView',
-    'UserWithoutTeamAPIView', 'GoogleLoginAPIView', 'IsActivatedAPIView',
-    'UniversitySearchAPIView', 'MajorSearchAPIView'
+    'ResetPasswordConfirmAPIView',
+    'GoogleLoginAPIView', 'IsActivatedAPIView'
 )
 
 
@@ -154,19 +148,6 @@ class ProfileAPIView(GenericAPIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class HideProfileInfoAPIView(GenericAPIView):
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def post(self, request):
-        request.user.profile.hide_profile_info = (
-            not request.user.profile.hide_profile_info
-        )
-
-        return Response(
-            status=status.HTTP_200_OK
-        )
-
-
 class ChangePasswordAPIView(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = ChangePasswordSerializer
@@ -221,74 +202,6 @@ class ResetPasswordConfirmAPIView(GenericAPIView):
                         status=200)
 
 
-class UserWithoutTeamAPIView(GenericAPIView):
-    permission_classes = [IsAuthenticated, ProfileComplete]
-    serializer_class = UserViewSerializer
-    pagination_class = UsersPagination
-
-    def get(self, request):
-
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
-        data = self.get_serializer(
-            instance=page,
-            many=True
-        ).data
-
-        return self.get_paginated_response(
-            data={'data': data},
-        )
-
-    def get_queryset(self):
-        name = self.request.query_params.get('name')
-        email = self.request.query_params.get('email')
-        university = self.request.query_params.get('university')
-        programming_language = self.request.query_params.get(
-            'programming_language')
-        major = self.request.query_params.get('major')
-
-        queryset = User.objects.all().filter(team=None).exclude(profile=None)
-
-        if name:
-            queryset = queryset.annotate(
-                name=Concat('profile__firstname_fa', Value(' '),
-                            'profile__lastname_fa')
-            ).filter(name__icontains=name)
-
-        if email:
-            queryset = queryset.filter(
-                email__icontains=email
-            )
-
-        if university:
-            queryset = queryset.filter(
-                profile__university__icontains=university
-            )
-
-        if programming_language:
-            queryset = queryset.filter(
-                profile__programming_language=programming_language
-            )
-
-        if major:
-            queryset = queryset.filter(
-                profile__major__icontains=major
-            )
-        complete_profiles = [user.id for user in
-                             filter(lambda user: user.profile.is_complete,
-                                    queryset
-                                    )
-                             ]
-        queryset = queryset.filter(id__in=complete_profiles)
-        return queryset
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['limited'] = True
-
-        return context
-
-
 class ProfileInfoAPIView(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = ProfileSerializer
@@ -303,73 +216,3 @@ class ProfileInfoAPIView(GenericAPIView):
         context = super().get_serializer_context()
         context['limited'] = True
         return context
-
-
-class UniversitySearchAPIView(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
-    serializer_class = UniversitySerializer
-
-    def get(self, request):
-        import requests
-
-        api_config = UniversityAPIConfig.objects.last()
-        url = api_config.url
-        print(url)
-        headers = eval(api_config.headers)
-        search_param = self.request.query_params.get('q', '')
-        payload = f"query={search_param}"
-        response = requests.request(
-            'POST',
-            url,
-            headers=headers,
-            data=payload.encode('utf-8')
-        )
-        if (response.status_code == status.HTTP_200_OK):
-            for data in response.json()["data"]:
-                if not University.objects.all().filter(id=data["id"]).exists():
-                    University.objects.create(id=data["id"], name=data["name"],
-                                              school_type=data["school_type"])
-            response = response.json()["data"]
-        else:
-            universities = University.objects.filter(
-                name__icontains=search_param).order_by('name')[:20]
-            response = self.get_serializer(instance=universities,
-                                           many=True).data
-        return Response(
-            data={'data': response},
-            status=status.HTTP_200_OK
-        )
-
-
-class MajorSearchAPIView(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
-    serializer_class = MajorSerializer
-
-    def get(self, request):
-        import requests
-
-        api_config = MajorAPIConfig.objects.last()
-        url = api_config.url
-        headers = eval(api_config.headers)
-        search_param = self.request.query_params.get("q", "")
-        url = f'{url}/{search_param}/'
-        print(url)
-        response = requests.request(
-            'GET',
-            url,
-            headers=headers,
-            data={}
-        )
-        if (response.status_code == status.HTTP_200_OK):
-            for data in response.json()["results"]:
-                if not Major.objects.all().filter(id=data["key"]).exists():
-                    Major.objects.create(id=data["key"], name=data["text"])
-            response = response.json()["results"]
-        else:
-            majors = Major.objects.filter(
-                name__icontains=search_param).order_by('name')[:20]
-            response = self.get_serializer(instance=majors, many=True).data
-        return Response(
-            data={'data': response},
-            status=status.HTTP_200_OK
-        )
