@@ -67,12 +67,16 @@ class BlogFilter(django_filters.FilterSet):
                                                      lookup_expr='year', label='Posting Year')
     subject = django_filters.CharFilter(field_name='subject', lookup_expr='icontains', label='Subject')
     ordering = django_filters.ChoiceFilter(label='Order by Views', choices=CHOICES, method='filter_by_order')
+    contributor = django_filters.CharFilter(field_name="contributors", lookup_expr='icontains')
 
     class Meta:
         model = BlogPost
-        exclude = ('id', 'created', 'modified', 'post_text', 'post_image', 'contributors',
+        exclude = ('created', 'modified', 'post_content', 'contributors',
                    'reading_time',)
 
     def filter_by_order(self, queryset, name, value):
         expression = 'views_count' if value.lower() == 'ascending' else '-views_count'
         return queryset.order_by(expression)
+
+    # TODO a method for searching for specific author (with details on the author) or getting most recent posts can
+    #  be added
