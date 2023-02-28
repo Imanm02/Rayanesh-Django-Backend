@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.response import Response
+from .paginations import BlogsPagination
 from rest_framework import status
 
 from .models import BlogPost
@@ -8,10 +9,10 @@ from .serializers import BlogPostSerializer
 from filters import BlogFilter
 
 from django_filters import rest_framework as filters
-from django.shortcuts import render
 
 
 class BlogPostList(ListAPIView):
+    pagination_class = BlogsPagination
     queryset = BlogPost.objects.all()
     serializer_class = BlogPostSerializer
     filter_backends = (filters.DjangoFilterBackend,)
@@ -29,4 +30,3 @@ class BlogPostDetail(APIView):
 
 class BlogPostCreate(CreateAPIView):
     serializer_class = BlogPostSerializer
-
