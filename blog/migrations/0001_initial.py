@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('post_text', models.TextField()),
+                ('post_content', models.TextField()),
                 ('post_image', models.ImageField(upload_to='blog_post_images')),
                 ('contributors', models.TextField(help_text='All contributors comma or new line seperated here')),
                 ('subject', models.CharField(max_length=32)),
