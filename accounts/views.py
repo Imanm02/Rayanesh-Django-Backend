@@ -126,7 +126,7 @@ def activate(request, uidb64, token):
     else:
         # return render(request, 'registration/activation_invalid.html')
         return HttpResponse(json.dumps({"token": "something"}), content_type="application/json")
-    
+
 # @csrf_exempt
 # def login(request):
 #     email = ""
