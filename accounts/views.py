@@ -133,36 +133,20 @@ def login(request):
     if request.method == 'POST':
         formdata = json.loads(request.body.decode())
         loginForm = UserLoginForm(formdata)
-
         username = request.data['username']
         password = request.data['password']
-
-        user = User.objects.filter(email=email).first()
-
-        # print(registerForm.errors)
-
+        user = User.objects.filter(username=username).first()
         if loginForm.is_valid():
             if user is None:
                 raise AuthenticationFailed('User not found!')
-
             if not user.check_password(password):
                 raise AuthenticationFailed('Incorrect password!')
-            
             user = authenticate(username= user.username, password= user.password)
-
             user = loginForm.save(commit=False)
-            # message = HttpResponse(json.dumps({"token": "something"}), content_type="application/json"), {
-            #     'user': user,
-            #     'domain': current_site.domain,
-            #     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            #     'token': account_activation_token.make_token(user),
-            # }
-            #user.email_user(subject=subject, message=message)
             login(request, user)
             return HttpResponse('logged in succesfully')
     else:
         loginForm = UserLoginForm()
-    # return render(request, 'registration/register.html', {'form': registerForm})
     return HttpResponse(json.dumps({"email"}), content_type="application/json")
 
 def getProfile(request):
