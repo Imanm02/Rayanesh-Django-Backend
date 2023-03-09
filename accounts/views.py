@@ -85,7 +85,9 @@ def post_search(request):
 def accounts_register(request):
     email = ""
     if request.method == 'POST':
-        registerForm = RegistrationForm(request.POST)
+        formdata = json.loads(request.body.decode())
+        registerForm = RegistrationForm(formdata)
+        # print(registerForm.errors)
         if registerForm.is_valid():
             user = registerForm.save(commit=False)
             user.email = registerForm.cleaned_data['email']
@@ -102,7 +104,7 @@ def accounts_register(request):
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),
             }
-            user.email_user(subject=subject, message=message)
+            #user.email_user(subject=subject, message=message)
             return HttpResponse('registered succesfully and activation sent')
     else:
         registerForm = RegistrationForm()
