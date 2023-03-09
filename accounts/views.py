@@ -4,17 +4,19 @@ from django.http import HttpResponse
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.models import User
-from .forms import RegistrationForm, UserEditForm
+from .forms import RegistrationForm, UserEditForm, UserLoginForm
 from .tokens import account_activation_token
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
-# from rest_framework.views import APIView
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.views import APIView
 from rest_framework.response import Response
-# from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 # from .serializers import UserSerializer
 import json
 
@@ -83,7 +85,6 @@ def post_search(request):
 
 @csrf_exempt
 def accounts_register(request):
-    email = ""
     if request.method == 'POST':
         formdata = json.loads(request.body.decode())
         registerForm = RegistrationForm(formdata)
@@ -109,7 +110,7 @@ def accounts_register(request):
     else:
         registerForm = RegistrationForm()
     # return render(request, 'registration/register.html', {'form': registerForm})
-    return HttpResponse(json.dumps({"email": str(email)}), content_type="application/json")
+    return HttpResponse(json.dumps({"email"}), content_type="application/json")
 
 @csrf_exempt
 def activate(request, uidb64, token):
@@ -127,29 +128,39 @@ def activate(request, uidb64, token):
         # return render(request, 'registration/activation_invalid.html')
         return HttpResponse(json.dumps({"token": "something"}), content_type="application/json")
 
-# @csrf_exempt
-# def login(request):
-#     email = ""
-#     if request.method == 'POST':
-#         formdata = json.loads(request.body.decode())
-#         loginForm = UserLoginForm(formdata)
-#         # print(registerForm.errors)
-#         if loginForm.is_valid():
-#             user = loginForm.save(commit=False)
-#             user.email = loginForm.cleaned_data['email']
-#             email = user.email
-#             current_site = get_current_site(request)
-#             subject = 'Activate your Account'
-#             # render_to_string('registration/account_activation_email.html'
-#             message = HttpResponse(json.dumps({"token": "something"}), content_type="application/json"), {
-#                 'user': user,
-#                 'domain': current_site.domain,
-#                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-#                 'token': account_activation_token.make_token(user),
-#             }
-#             #user.email_user(subject=subject, message=message)
-#             return HttpResponse('registered succesfully and activation sent')
-#     else:
-#         registerForm = RegistrationForm()
-#     # return render(request, 'registration/register.html', {'form': registerForm})
-#     return HttpResponse(json.dumps({"email": str(email)}), content_type="application/json")
+@csrf_exempt
+def login(request):
+    if request.method == 'POST':
+        formdata = json.loads(request.body.decode())
+        loginForm = UserLoginForm(formdata)
+
+        username = request.data['username']
+        password = request.data['password']
+
+        user = User.objects.filter(email=email).first()
+
+        # print(registerForm.errors)
+
+        if loginForm.is_valid():
+            if user is None:
+                raise AuthenticationFailed('User not found!')
+
+            if not user.check_password(password):
+                raise AuthenticationFailed('Incorrect password!')
+            
+            user = authenticate(username= user.username, password= user.password)
+
+            user = loginForm.save(commit=False)
+            # message = HttpResponse(json.dumps({"token": "something"}), content_type="application/json"), {
+            #     'user': user,
+            #     'domain': current_site.domain,
+            #     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            #     'token': account_activation_token.make_token(user),
+            # }
+            #user.email_user(subject=subject, message=message)
+            login(request, user)
+            return HttpResponse('logged in succesfully')
+    else:
+        loginForm = UserLoginForm()
+    # return render(request, 'registration/register.html', {'form': registerForm})
+    return HttpResponse(json.dumps({"email"}), content_type="application/json")
