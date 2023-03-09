@@ -24,7 +24,7 @@ def profile(request):
     # return render(request,
     #               'accounts/profile.html',
     #               {'section': 'profile'})
-    return HttpResponse(json.dumps({"token": "something"}),content_type="application/json")
+    return HttpResponse(json.dumps({"token": "something"}), content_type="application/json")
 
 @csrf_exempt
 @login_required
@@ -39,7 +39,7 @@ def edit(request):
     # return render(request,
     #               'accounts/update.html',
     #               {'user_form': user_form})
-    return HttpResponse(json.dumps({"token": "something"}),content_type="application/json")
+    return HttpResponse(json.dumps({"token": "something"}), content_type="application/json")
 
 @csrf_exempt
 @login_required
@@ -52,7 +52,7 @@ def delete_user(request):
         return redirect('accounts:login')
 
     # return render(request, 'accounts/delete.html')
-    return HttpResponse(json.dumps({"token": "something"}),content_type="application/json")
+    return HttpResponse(json.dumps({"token": "something"}), content_type="application/json")
 
 @csrf_exempt
 def post_search(request):
@@ -79,7 +79,7 @@ def post_search(request):
     #               {'form': form,
     #                'q': q,
     #                'results': results})
-    return HttpResponse(json.dumps({"token": "something"}),content_type="application/json")
+    return HttpResponse(json.dumps({"token": "something"}), content_type="application/json")
 
 @csrf_exempt
 def accounts_register(request):
@@ -125,4 +125,4 @@ def activate(request, uidb64, token):
         return redirect('login')
     else:
         # return render(request, 'registration/activation_invalid.html')
-        return HttpResponse(json.dumps({"token": "something"}),content_type="application/json")
+        return HttpResponse(json.dumps({"token": "something"}), content_type="application/json")
