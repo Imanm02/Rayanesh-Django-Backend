@@ -83,11 +83,9 @@ def post_search(request):
 
 @csrf_exempt
 def accounts_register(request):
-    print(2)
     email = ""
     if request.method == 'POST':
         registerForm = RegistrationForm(request.POST)
-        print(3)
         if registerForm.is_valid():
             user = registerForm.save(commit=False)
             user.email = registerForm.cleaned_data['email']
@@ -108,7 +106,6 @@ def accounts_register(request):
             user.email_user(subject=subject, message=message)
             return HttpResponse('registered succesfully and activation sent')
     else:
-        print(12)
         registerForm = RegistrationForm()
     # return render(request, 'registration/register.html', {'form': registerForm})
     return HttpResponse(json.dumps({"email": str(email)}), content_type="application/json")
