@@ -164,3 +164,10 @@ def login(request):
         loginForm = UserLoginForm()
     # return render(request, 'registration/register.html', {'form': registerForm})
     return HttpResponse(json.dumps({"email"}), content_type="application/json")
+
+def getProfile(request):
+    if request.method == "GET":
+        id = request.GET.get('id', '')
+        user = User.objects.get(pk=id)
+        print(user.username)
+        return HttpResponse(json.dumps({"email"}), content_type="application/json")
