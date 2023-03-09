@@ -10,15 +10,23 @@ from django.contrib.auth import login
 from django.contrib.auth.models import User
 from .forms import RegistrationForm, UserEditForm
 from .tokens import account_activation_token
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+# from rest_framework.views import APIView
+from rest_framework.response import Response
+# from rest_framework.exceptions import AuthenticationFailed
+# from .serializers import UserSerializer
+import json
 
-
+@csrf_exempt
 @login_required
 def profile(request):
-    return render(request,
-                  'accounts/profile.html',
-                  {'section': 'profile'})
+    # return render(request,
+    #               'accounts/profile.html',
+    #               {'section': 'profile'})
+    return HttpResponse(json.dumps({"token": "something"}),content_type="application/json")
 
-
+@csrf_exempt
 @login_required
 def edit(request):
     if request.method == 'POST':
@@ -28,11 +36,12 @@ def edit(request):
             user_form.save()
     else:
         user_form = UserEditForm(instance=request.user)
-    return render(request,
-                  'accounts/update.html',
-                  {'user_form': user_form})
+    # return render(request,
+    #               'accounts/update.html',
+    #               {'user_form': user_form})
+    return HttpResponse(json.dumps({"token": "something"}),content_type="application/json")
 
-
+@csrf_exempt
 @login_required
 def delete_user(request):
 
@@ -42,9 +51,10 @@ def delete_user(request):
         user.save()
         return redirect('accounts:login')
 
-    return render(request, 'accounts/delete.html')
+    # return render(request, 'accounts/delete.html')
+    return HttpResponse(json.dumps({"token": "something"}),content_type="application/json")
 
-
+@csrf_exempt
 def post_search(request):
     form = PostSearchForm()
     q = ''
@@ -65,36 +75,45 @@ def post_search(request):
 
             results = Post.objects.filter(query)
 
-    return render(request, 'blog/search.html',
-                  {'form': form,
-                   'q': q,
-                   'results': results})
+    # return render(request, 'blog/search.html',
+    #               {'form': form,
+    #                'q': q,
+    #                'results': results})
+    return HttpResponse(json.dumps({"token": "something"}),content_type="application/json")
 
-
+@csrf_exempt
 def accounts_register(request):
+    print(2)
+    email = ""
     if request.method == 'POST':
         registerForm = RegistrationForm(request.POST)
+        print(3)
         if registerForm.is_valid():
             user = registerForm.save(commit=False)
             user.email = registerForm.cleaned_data['email']
+            email = user.email
+            print(1)
             user.set_password(registerForm.cleaned_data['password'])
             user.is_active = False
             user.save()
             current_site = get_current_site(request)
             subject = 'Activate your Account'
-            message = render_to_string('registration/account_activation_email.html', {
+            # render_to_string('registration/account_activation_email.html'
+            message = HttpResponse(json.dumps({"token": "something"}), content_type="application/json"), {
                 'user': user,
                 'domain': current_site.domain,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),
-            })
+            }
             user.email_user(subject=subject, message=message)
             return HttpResponse('registered succesfully and activation sent')
     else:
+        print(12)
         registerForm = RegistrationForm()
-    return render(request, 'registration/register.html', {'form': registerForm})
+    # return render(request, 'registration/register.html', {'form': registerForm})
+    return HttpResponse(json.dumps({"email": str(email)}), content_type="application/json")
 
-
+@csrf_exempt
 def activate(request, uidb64, token):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -107,4 +126,5 @@ def activate(request, uidb64, token):
         login(request, user)
         return redirect('login')
     else:
-        return render(request, 'registration/activation_invalid.html')
+        # return render(request, 'registration/activation_invalid.html')
+        return HttpResponse(json.dumps({"token": "something"}),content_type="application/json")
