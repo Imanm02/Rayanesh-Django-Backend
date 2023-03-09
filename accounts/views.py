@@ -169,5 +169,4 @@ def getProfile(request):
     if request.method == "GET":
         id = request.GET.get('id', '')
         user = User.objects.get(pk=id)
-        print(user.username)
-        return HttpResponse(json.dumps({"email"}), content_type="application/json")
+        return HttpResponse(json.dumps({user.username}), content_type="application/json")
