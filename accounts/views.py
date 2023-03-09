@@ -90,7 +90,6 @@ def accounts_register(request):
             user = registerForm.save(commit=False)
             user.email = registerForm.cleaned_data['email']
             email = user.email
-            print(1)
             user.set_password(registerForm.cleaned_data['password'])
             user.is_active = False
             user.save()
