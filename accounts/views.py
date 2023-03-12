@@ -133,16 +133,18 @@ def login(request):
     if request.method == 'POST':
         formdata = json.loads(request.body.decode())
         loginForm = UserLoginForm(formdata)
-        username = request.data['username']
-        password = request.data['password']
-        user = User.objects.filter(username=username).first()
+        user = loginForm.save(commit=False)
+        user.username = loginForm.cleaned_data['username']
+        user.password = loginForm.cleaned_data['password']
+        # username = request.data['username']
+        # password = request.data['password']
+        user = User.objects.filter(username=user.username).first()
         if loginForm.is_valid():
             if user is None:
                 raise AuthenticationFailed('User not found!')
-            if not user.check_password(password):
+            if not user.check_password(user.password):
                 raise AuthenticationFailed('Incorrect password!')
             user = authenticate(username= user.username, password= user.password)
-            user = loginForm.save(commit=False)
             login(request, user)
             return HttpResponse('logged in succesfully')
     else:
