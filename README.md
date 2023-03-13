@@ -1,8 +1,6 @@
 # Back-end
 
-Rayanesh Site Backend
-
-<!-- * use "run.sh" commands to run -->
+Rayanesh Site Backend - Django
 
 * python manage.py makemigrations
 * python manage.py migrate
