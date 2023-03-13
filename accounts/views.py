@@ -128,28 +128,28 @@ def activate(request, uidb64, token):
         # return render(request, 'registration/activation_invalid.html')
         return HttpResponse(json.dumps({"token": "something"}), content_type="application/json")
 
-@csrf_exempt
-def login(request):
-    if request.method == 'POST':
-        formdata = json.loads(request.body.decode())
-        loginForm = UserLoginForm(formdata)
-        user = loginForm.save(commit=False)
-        user.username = loginForm.cleaned_data['username']
-        user.password = loginForm.cleaned_data['password']
-        # username = request.data['username']
-        # password = request.data['password']
-        user = User.objects.filter(username=user.username).first()
-        if loginForm.is_valid():
-            if user is None:
-                raise AuthenticationFailed('User not found!')
-            if not user.check_password(user.password):
-                raise AuthenticationFailed('Incorrect password!')
-            user = authenticate(username= user.username, password= user.password)
-            login(request, user)
-            return HttpResponse('logged in succesfully')
-    else:
-        loginForm = UserLoginForm()
-    return HttpResponse(json.dumps({"email"}), content_type="application/json")
+# @csrf_exempt
+# def login(request):
+#     if request.method == 'POST':
+#         formdata = json.loads(request.body.decode())
+#         loginForm = UserLoginForm(formdata)
+#         user = loginForm.save(commit=False)
+#         user.username = loginForm.cleaned_data['username']
+#         user.password = loginForm.cleaned_data['password']
+#         username = request.data['username']
+#         password = request.data['password']
+#         user = User.objects.filter(username=user.username).first()
+#         if loginForm.is_valid():
+#             if user is None:
+#                 raise AuthenticationFailed('User not found!')
+#             if not user.check_password(user.password):
+#                 raise AuthenticationFailed('Incorrect password!')
+#             user = authenticate(username= user.username, password= user.password)
+#             login(request, user)
+#             return HttpResponse('logged in succesfully')
+#     else:
+#         loginForm = UserLoginForm()
+#     return HttpResponse(json.dumps({"email"}), content_type="application/json")
 
 def getProfile(request):
     if request.method == "GET":
