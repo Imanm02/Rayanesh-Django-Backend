@@ -8,7 +8,7 @@
 # Installation
 1. Clone the repository: 
 ```
-git clone https://github.com/Imanm02/Aiport-Backend-WebDev-HW2.git
+git clone https://github.com/Imanm02/Rayanesh-Django-Backend.git
 ```
 2.
 ```
