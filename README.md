@@ -1,6 +1,6 @@
 # Back-end
 
-Rayanesh Site Backend - Django
+Rayanesh Site Django Backend
 
 * python manage.py makemigrations
 * python manage.py migrate
